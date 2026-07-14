@@ -61,15 +61,15 @@ footer span:first-child { font-family:Georgia,"Times New Roman",serif; color:var
 footer a { color:var(--ink); }
 
 .lightbox-backdrop { position:fixed; inset:0; z-index:20; display:grid; place-items:center; padding:24px; background:rgba(21,20,18,.78); }
-.lightbox { position:relative; width:min(1080px,calc(100vw - 48px)); height:min(720px,calc(100vh - 48px)); background:var(--paper); box-shadow:0 24px 80px rgba(0,0,0,.35); outline:none; }
-.lightbox-toolbar { height:58px; padding:0 18px 0 24px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; color:var(--muted); font-size:11px; }
+.lightbox { position:relative; width:min(1080px,calc(100vw - 48px)); height:min(720px,calc(100vh - 48px)); display:flex; flex-direction:column; overflow:hidden; background:var(--paper); box-shadow:0 24px 80px rgba(0,0,0,.35); outline:none; }
+.lightbox-toolbar { flex:0 0 58px; height:58px; padding:0 18px 0 24px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; color:var(--muted); font-size:11px; }
 .lightbox-toolbar button { border:0; background:transparent; padding:10px; font-size:12px; }
 .lightbox-toolbar button:hover,.lightbox-toolbar button:focus-visible { text-decoration:underline; outline:none; }
-.lightbox-content { height:calc(100% - 58px); display:grid; grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr); }
-.lightbox-image { min-width:0; display:grid; place-items:center; padding:42px 60px; background:#f0eee9; }
-.lightbox-image img { display:block; width:100%; height:100%; object-fit:contain; mix-blend-mode:multiply; }
+.lightbox-content { flex:1 1 auto; min-height:0; display:grid; grid-template-columns:minmax(0,1.35fr) minmax(300px,.65fr); }
+.lightbox-image { min-width:0; min-height:0; display:grid; place-items:center; overflow:hidden; padding:42px 60px; background:#f0eee9; }
+.lightbox-image img { display:block; width:auto; height:auto; max-width:100%; max-height:100%; object-fit:contain; mix-blend-mode:multiply; }
 .lightbox-image>span { color:var(--muted); font-size:12px; }
-.lightbox-details { padding:48px 46px; overflow-y:auto; }
+.lightbox-details { min-height:0; padding:48px 46px; overflow-y:auto; }
 .lightbox-details>p { margin:0 0 18px; color:var(--muted); font-size:10px; letter-spacing:.08em; text-transform:uppercase; }
 .lightbox-details h2 { margin:0 0 44px; font:400 clamp(28px,3.5vw,44px)/1.08 Georgia,"Times New Roman",serif; letter-spacing:-.025em; }
 .lightbox-details dl { margin:0; }
