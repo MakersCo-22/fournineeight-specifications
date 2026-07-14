@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type SpecRow = { category: string; item: string; location: string; specification: string; image?: string };
 const r = (category: string, item: string, location: string, specification: string, image?: string): SpecRow => ({ category, item, location, specification, image });
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
+const publicAsset = (path: string) => `${basePath}${path}`;
 
 const rows: SpecRow[] = [
   r("Materials & finishes", "Paint", "Internal walls", "Colour: Dulux Natural White (SW1F4)\nFinish: Matte", "/specs/p01-01.png"),
@@ -99,7 +101,7 @@ export default function Home() {
         <a className="brand" href="#top" aria-label="FourNineEight home">FourNineEight</a>
         <div className="topbar-actions">
           <button type="button" onClick={() => window.print()}>Print</button>
-          <a href="/fournineeight-apartment-1-specifications.pdf" download>Download PDF</a>
+          <a href={publicAsset("/fournineeight-apartment-1-specifications.pdf")} download>Download PDF</a>
         </div>
       </header>
       <section className="page-heading" id="top">
@@ -140,7 +142,7 @@ function CategoryRows({ name, rows: categoryRows, onSelect }: { name: string; ro
     <tr className="category-row"><th colSpan={4}>{name}<span>{categoryRows.length}</span></th></tr>
     {categoryRows.map((row, index) => <tr key={`${name}-${row.item}-${row.location}-${index}`}>
       <td className="item-cell"><button type="button" className="item-button" onClick={() => onSelect(row)}>{row.item}</button></td><td>{formatText(row.location)}</td><td>{formatText(row.specification)}</td>
-      <td className="reference-cell">{row.image ? <button type="button" className="thumbnail-button" onClick={() => onSelect(row)} aria-label={`View ${row.item} details`}><img src={row.image} alt={`${row.item} reference`} loading="lazy" /></button> : <button type="button" className="no-image-button" onClick={() => onSelect(row)} aria-label={`View ${row.item} details`}>—</button>}</td>
+      <td className="reference-cell">{row.image ? <button type="button" className="thumbnail-button" onClick={() => onSelect(row)} aria-label={`View ${row.item} details`}><img src={publicAsset(row.image)} alt={`${row.item} reference`} loading="lazy" /></button> : <button type="button" className="no-image-button" onClick={() => onSelect(row)} aria-label={`View ${row.item} details`}>—</button>}</td>
     </tr>)}
   </>;
 }
@@ -190,7 +192,7 @@ function Lightbox({ item, index, total, onClose, onPrevious, onNext }: { item: S
         </div>
         <div className="lightbox-content">
           <div className="lightbox-image">
-            {item.image ? <img src={item.image} alt={`${item.item} reference`} /> : <span>No reference image</span>}
+            {item.image ? <img src={publicAsset(item.image)} alt={`${item.item} reference`} /> : <span>No reference image</span>}
           </div>
           <div className="lightbox-details">
             <p>{item.category}</p>

@@ -1,98 +1,73 @@
-# vinext-starter
+# FourNineEight Apartment Specifications
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+A searchable online specification schedule for Apartment 1 at FourNineEight. The interface keeps the structure of the original specification PDF while adding category filters, larger reference images, print support, and an accessible item lightbox.
 
-## Prerequisites
+## Live site
 
-- Node.js `>=22.13.0`
+[View the FourNineEight Apartment Specifications on GitHub Pages](https://makersco-22.github.io/fournineeight-specifications/)
 
-## Quick Start
+The Pages deployment is published automatically from the `main` branch by GitHub Actions.
+
+## Features
+
+- 70-item interior specification schedule
+- Search by item, location, or specification
+- Category filters
+- Enlarged material and product thumbnails
+- Item lightbox with complete details and previous/next navigation
+- Keyboard navigation with Left Arrow, Right Arrow, and Escape
+- Print layout and original PDF download
+- Responsive layout for desktop, tablet, and mobile
+
+## Requirements
+
+- Node.js 22.13 or newer
+- npm
+
+## Local development
 
 ```bash
 npm install
 npm run dev
+```
+
+Open the local address shown in the terminal.
+
+## Validation
+
+```bash
+npm test
+```
+
+This creates a production build and runs the server-rendering smoke tests.
+
+## Production build
+
+```bash
 npm run build
+npm start
 ```
 
-This starter does not use `wrangler.jsonc`.
+## Project structure
 
-## Included Shape
-
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-OpenAI workspace sites can read the current user's email from
-`oai-authenticated-user-email`.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```text
+app/
+  page.tsx       Specification data and interface
+  globals.css    Layout, table, lightbox, and print styles
+  layout.tsx     Site metadata and document shell
+public/
+  specs/         Material and product reference images
+  fournineeight-apartment-1-specifications.pdf
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+The project uses [vinext](https://github.com/cloudflare/vinext) and produces a Cloudflare Worker-compatible build. `.openai/hosting.json` contains optional Sites hosting bindings; the GitHub export leaves its project identifier unset.
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
+## Updating specifications
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
+Specification rows are stored in the `rows` array near the top of `app/page.tsx`. Reference images live in `public/specs/` and are linked using paths such as `/specs/p01-02.jpg`.
 
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
+## Content and licensing
 
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
+The specification document, product imagery, development name, and related brand assets remain the property of their respective owners. Confirm that you have permission to publish these materials before making the repository public.
 
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+No open-source license is included. Add an appropriate license if you intend to permit reuse of the source code.
