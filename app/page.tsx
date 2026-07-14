@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type SpecRow = { category: string; item: string; location: string; specification: string; image?: string };
 const r = (category: string, item: string, location: string, specification: string, image?: string): SpecRow => ({ category, item, location, specification, image });
@@ -83,11 +83,15 @@ const categories = ["All", ...Array.from(new Set(rows.map((row) => row.category)
 export default function Home() {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const filteredRows = useMemo(() => {
     const term = query.trim().toLowerCase();
     return rows.filter((row) => (category === "All" || row.category === category) && (!term || `${row.item} ${row.location} ${row.specification}`.toLowerCase().includes(term)));
   }, [category, query]);
   const visibleCategories = categories.slice(1).filter((name) => filteredRows.some((row) => row.category === name));
+  const closeLightbox = useCallback(() => setSelectedIndex(null), []);
+  const showPrevious = useCallback(() => setSelectedIndex((index) => index === null ? null : (index - 1 + filteredRows.length) % filteredRows.length), [filteredRows.length]);
+  const showNext = useCallback(() => setSelectedIndex((index) => index === null ? null : (index + 1) % filteredRows.length), [filteredRows.length]);
 
   return (
     <main>
@@ -105,10 +109,10 @@ export default function Home() {
       <section className="controls" aria-label="Specification filters">
         <label className="search-field">
           <span>Search</span>
-          <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search item, location or specification" />
+          <input type="search" value={query} onChange={(event) => { setQuery(event.target.value); setSelectedIndex(null); }} placeholder="Search item, location or specification" />
         </label>
         <div className="category-filters" role="group" aria-label="Filter by category">
-          {categories.map((name) => <button type="button" key={name} className={category === name ? "active" : ""} aria-pressed={category === name} onClick={() => setCategory(name)}>{name}</button>)}
+          {categories.map((name) => <button type="button" key={name} className={category === name ? "active" : ""} aria-pressed={category === name} onClick={() => { setCategory(name); setSelectedIndex(null); }}>{name}</button>)}
         </div>
         <p className="result-count">Showing {filteredRows.length} of {rows.length} items</p>
       </section>
@@ -117,25 +121,89 @@ export default function Home() {
           <table>
             <colgroup><col className="item-col" /><col className="location-col" /><col className="spec-col" /><col className="reference-col" /></colgroup>
             <thead><tr><th>Item</th><th>Location</th><th>Specification</th><th>Reference</th></tr></thead>
-            <tbody>{visibleCategories.map((name) => <CategoryRows key={name} name={name} rows={filteredRows.filter((row) => row.category === name)} />)}</tbody>
+            <tbody>{visibleCategories.map((name) => <CategoryRows key={name} name={name} rows={filteredRows.filter((row) => row.category === name)} onSelect={(row) => setSelectedIndex(filteredRows.indexOf(row))} />)}</tbody>
           </table>
         ) : (
           <div className="empty-state"><p>No specifications match “{query}”.</p><button type="button" onClick={() => { setQuery(""); setCategory("All"); }}>Clear filters</button></div>
         )}
       </section>
       <footer><span>FourNineEight</span><span>Apartment 1 Interior Specifications</span><a href="#top">Back to top</a></footer>
+      {selectedIndex !== null ? (
+        <Lightbox item={filteredRows[selectedIndex]} index={selectedIndex} total={filteredRows.length} onClose={closeLightbox} onPrevious={showPrevious} onNext={showNext} />
+      ) : null}
     </main>
   );
 }
 
-function CategoryRows({ name, rows: categoryRows }: { name: string; rows: SpecRow[] }) {
+function CategoryRows({ name, rows: categoryRows, onSelect }: { name: string; rows: SpecRow[]; onSelect: (row: SpecRow) => void }) {
   return <>
     <tr className="category-row"><th colSpan={4}>{name}<span>{categoryRows.length}</span></th></tr>
     {categoryRows.map((row, index) => <tr key={`${name}-${row.item}-${row.location}-${index}`}>
-      <td className="item-cell">{row.item}</td><td>{formatText(row.location)}</td><td>{formatText(row.specification)}</td>
-      <td className="reference-cell">{row.image ? <img src={row.image} alt={`${row.item} reference`} loading="lazy" /> : <span aria-label="No reference image">—</span>}</td>
+      <td className="item-cell"><button type="button" className="item-button" onClick={() => onSelect(row)}>{row.item}</button></td><td>{formatText(row.location)}</td><td>{formatText(row.specification)}</td>
+      <td className="reference-cell">{row.image ? <button type="button" className="thumbnail-button" onClick={() => onSelect(row)} aria-label={`View ${row.item} details`}><img src={row.image} alt={`${row.item} reference`} loading="lazy" /></button> : <button type="button" className="no-image-button" onClick={() => onSelect(row)} aria-label={`View ${row.item} details`}>—</button>}</td>
     </tr>)}
   </>;
 }
 
 function formatText(value: string) { return value.split("\n").map((line, index) => <span key={`${line}-${index}`}>{line}</span>); }
+
+function Lightbox({ item, index, total, onClose, onPrevious, onNext }: { item: SpecRow; index: number; total: number; onClose: () => void; onPrevious: () => void; onNext: () => void }) {
+  const dialogRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dialogRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+      if (event.key === "ArrowLeft") onPrevious();
+      if (event.key === "ArrowRight") onNext();
+      if (event.key === "Tab") {
+        const focusable = dialogRef.current?.querySelectorAll<HTMLElement>("button:not([disabled]), a[href]");
+        if (!focusable?.length) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === dialogRef.current)) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [onClose, onNext, onPrevious]);
+
+  return (
+    <div className="lightbox-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <section className="lightbox" role="dialog" aria-modal="true" aria-labelledby="lightbox-title" ref={dialogRef} tabIndex={-1}>
+        <div className="lightbox-toolbar">
+          <span>{index + 1} of {total}</span>
+          <button type="button" onClick={onClose} aria-label="Close item details">Close ×</button>
+        </div>
+        <div className="lightbox-content">
+          <div className="lightbox-image">
+            {item.image ? <img src={item.image} alt={`${item.item} reference`} /> : <span>No reference image</span>}
+          </div>
+          <div className="lightbox-details">
+            <p>{item.category}</p>
+            <h2 id="lightbox-title">{item.item}</h2>
+            <dl>
+              <div><dt>Location</dt><dd>{formatText(item.location)}</dd></div>
+              <div><dt>Specification</dt><dd>{formatText(item.specification)}</dd></div>
+            </dl>
+          </div>
+        </div>
+        <button type="button" className="lightbox-arrow previous" onClick={onPrevious} aria-label="Previous item">←</button>
+        <button type="button" className="lightbox-arrow next" onClick={onNext} aria-label="Next item">→</button>
+      </section>
+    </div>
+  );
+}
