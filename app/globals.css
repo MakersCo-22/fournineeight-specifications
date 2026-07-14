@@ -77,10 +77,10 @@ footer a { color:var(--ink); }
 .lightbox-details dt { margin-bottom:9px; color:var(--muted); font-size:10px; letter-spacing:.07em; text-transform:uppercase; }
 .lightbox-details dd { margin:0; line-height:1.55; }
 .lightbox-details dd span { display:block; }
-.lightbox-arrow { position:absolute; top:50%; width:44px; height:44px; margin-top:-22px; border:1px solid var(--line); border-radius:50%; background:var(--paper); font-size:19px; box-shadow:0 2px 12px rgba(0,0,0,.08); }
+.lightbox-arrow { position:absolute; top:50%; z-index:3; width:44px; height:44px; margin-top:-22px; border:1px solid var(--line); border-radius:50%; background:var(--paper); font-size:19px; box-shadow:0 2px 12px rgba(0,0,0,.12); }
 .lightbox-arrow:hover,.lightbox-arrow:focus-visible { border-color:var(--ink); outline:none; }
-.lightbox-arrow.previous { left:-62px; }
-.lightbox-arrow.next { right:-62px; }
+.lightbox-arrow.previous { left:14px; }
+.lightbox-arrow.next { right:14px; }
 
 @media (max-width:800px) {
   .topbar { padding:0 18px; }
